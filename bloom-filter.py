@@ -7,7 +7,7 @@ def seating_calculated (nSlots, nKeys, nSeats):
     # simplify: unbit = np.power(1 - 1/nSlots, nKeys * nSeats)
     unbit = np.exp(-nSeats * nKeys / nSlots)
     # P(N) fix-factor: 1/(k+1) when sum(P(i)), i=1,2,3,...,N
-    noSeat = nKeys / (1.0 + nSeats) * np.power(1-unbit, nSeats)
+    noSeat = int(nKeys / (1.0 + nSeats) * np.power(1-unbit, nSeats))
     seated = nKeys - noSeat
     print("prob_calc: seated(%d) noSeat(%d) 0-bit(%f)" % (seated, noSeat, unbit))
     return seated
@@ -39,7 +39,7 @@ def main():
     print("M N k", M, N, k)
     pin = seating_calculated(M, N, k)
     sin = seating_simulated(M, N, k)
-    print("pin/sin = %f" % (pin*1.0/sin))
+    print("pin/sin = %f" % (pin/sin))
 
 if __name__ == '__main__':
     main()
