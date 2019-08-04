@@ -1,0 +1,5 @@
+R9. Rolling Hashes, Amortized Analysis
+https://www.youtube.com/watch?v=w6nuXg0BISo
+
+Episode 3 - Rolling Hashes and Bloom Filters
+https://www.youtube.com/watch?v=rA1ZevamGDc&app=desktop
