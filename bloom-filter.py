@@ -3,42 +3,47 @@ import argparse
 import numpy as np
 from datetime import datetime
 
-def seating_calculated (nSlots, nKeys, nSeats):
-    # simplify: unbit = np.power(1 - 1/nSlots, nKeys * nSeats)
-    unbit = np.exp(-nSeats * nKeys / nSlots)
-    # P(N) fix-factor: 1/(k+1) when sum(P(i)), i=1,2,3,...,N
-    noSeat = int(nKeys / (1.0 + nSeats) * np.power(1-unbit, nSeats))
-    seated = nKeys - noSeat
-    print("prob_calc: seated(%d) noSeat(%d) 0-bit(%f)" % (seated, noSeat, unbit))
-    return seated
+# n - Keys, m - Slots, k - Seats
 
-def seating_simulated (nSlots, nKeys, nSeats):
+def seating_calculated (m, n, k):
+    p0 = np.exp(-k*n/m) # simplify from np.power(1-1/m, n*k)
+    p1 = 1 - p0
+    p_add_collision = np.power(p1, k) # when n-1 item added
+    # Prob(N) fix-factor: 1/(k+1) when sum(P(i)^k), i=1,2,3,...,N
+    p_add_collision_mean = p_add_collision / (1 + k)
+    add_no = int(n * p_add_collision_mean)
+    add_ok = n - add_no
+    print("prob_calc: add_ok=(%d) add_no=(%d) p(bit-0)=(%.12f)" % (add_ok, add_no, p0))
+    return add_ok
+
+def seating_simulated (m, n, k):
     np.random.seed(datetime.now().microsecond)
-    AM = np.zeros(nSlots, dtype=np.int)
-    KN = np.random.randint(0, nSlots, size=(nKeys, nSeats))
-    noSeat, seated = 0, 0
+    AM = np.zeros(m, dtype=np.int)
+    KN = np.random.randint(0, m, size=(n, k))
+    add_ok, add_no = 0, 0
     for seats in KN:
         seats_available = seats[AM[seats] == 0]
         if seats_available.size > 0:
             AM[seats_available] = 1
-            seated += 1
+            add_ok += 1
         else:
-            noSeat += 1
-    unbit = 1.0 * len(AM[AM == 0]) / nSlots
-    print("simulated: seated(%d) noSeat(%d) 0-bit(%f)" % (seated, noSeat, unbit))
-    return seated
+            add_no += 1 # collisions + repeats
+    p0 = 1.0 * len(AM[AM == 0]) / m
+    print("simulated: add_ok=(%d) add_no=(%d) p(bit-0)=(%.12f)" % (add_ok, add_no, p0))
+    return add_ok
 
 def main():
     parser = argparse.ArgumentParser(description='simulate and compare hash k-seating issue')
-    parser.add_argument("-m", "--nSlots", type=int, help="number of Hash table slots")
-    parser.add_argument("-n", "--nKeys", type=int, help="allowed max Hash keys")
+    parser.add_argument("-k", "--hashes", type=int, help="number of Hash functions`")
+    parser.add_argument("-n", "--capacity", type=float, help="allowed max items to add")
     args = parser.parse_args()
-    M, N = int(args.nSlots), int(args.nKeys)
     # the best k (bits) for bloom-filter is integer round(4-drop-5-add) of ln(2)*M/N
-    k = int(0.5 + np.log(2) * M / N)
-    print("M N k", M, N, k)
-    pin = seating_calculated(M, N, k)
-    sin = seating_simulated(M, N, k)
+    # M=10^9+7,K=8 ==> capacity=86643398.1765
+    M = int(args.capacity * args.hashes / np.log(2))
+    N, K = int(args.capacity), int(args.hashes)
+    print("M N K M/N: ", M, N, K, M/N)
+    pin = seating_calculated(M, N, K)
+    sin = seating_simulated(M, N, K)
     print("pin/sin = %f" % (pin/sin))
 
 if __name__ == '__main__':
