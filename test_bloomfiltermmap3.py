@@ -66,7 +66,7 @@ def main():
     print("M N K M/N: ", M, N, K, M/N)
     pin = seating_calculated(M, N, K)
     #data = list([np.random.bytes(5) for i in range(N)])
-    payloads=['abcdef','1234567890','3245d3ffeeaabb23459879']
+    payloads=['abcdef','1234567890','3245d3ffeeaabb23459879','abcdef']
     sin = seating_simulated(payloads, N, K, 'myfiltername')
     print("pin/sin = %f" % (pin/sin))
 
