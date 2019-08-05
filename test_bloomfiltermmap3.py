@@ -20,33 +20,38 @@ def seating_calculated (m, n, k):
     print("prob_calc: add_ok=(%d) add_no=(%d) p(bit-0)=(%.12f)" % (add_ok, add_no, p0))
     return add_ok
 
-def seating_simulated (data, n, k, filter_filename=None):
-    print("len(data)=%d" % len(data))
-    add_ok, add_no, add_re, repeats = 0, 0, 0, 0
+def seating_simulated (payloads, n, k, filter_filename=None):
+    packets, ngrams, repeats = 0, 0, 0
+    add_ok, add_no, add_re = 0, 0, 0
     add_repeat_but_bf_add_true = 0
     bf = BloomFilter(n, 1/np.power(2,k), filter_filename)
     duniq = set()
-    for d in data:
-        if d not in duniq:
-            duniq.add(d)
-            repeated = False
-        else:
-            repeats += 1
-            repeated = True
-        result = bf.add(d)
-        if result == False:
-            add_ok += 1
-            if repeated:
-                add_repeat_but_bf_add_true += 1
-        elif result == True:
-            if repeated:
-                add_re += 1
+    for payload in payloads:
+        data = unhexlify(payload)
+        dlen = len(data)
+        packets += 1
+        for i in range(min(100, dlen-k+1)):
+            d = data[i:i+k]
+            ngrams += 1
+            if d not in duniq:
+                duniq.add(d)
+                repeated = False
             else:
-                add_no += 1
-    bfcount = len(bf)
+                repeats += 1
+                repeated = True
+            result = bf.add(d)
+            if result == False:
+                add_ok += 1
+                if repeated:
+                    add_repeat_but_bf_add_true += 1
+            elif result == True:
+                if repeated:
+                    add_re += 1
+                else:
+                    add_no += 1
     print("simulated: add_ok=(%d) add_no=(%d) add_re=(%d) repeats=(%d)" % (add_ok, add_no, add_re, repeats))
     print("add_repeat_but_bf_add_true=(%d)" % add_repeat_but_bf_add_true)
-    print("bf: num_bits=%d, capacity=%d, error_rate=%f, added=%d" % (bf.num_bits, bf.capacity, bf.error_rate, bfcount))
+    print("bf: num_bits=%d, capacity=%d, error_rate=%f, added=%d" % (bf.num_bits, bf.capacity, bf.error_rate, len(bf)))
     return add_ok
 
 def main():
@@ -60,8 +65,8 @@ def main():
     N, K = int(args.capacity), int(args.hashes)
     print("M N K M/N: ", M, N, K, M/N)
     pin = seating_calculated(M, N, K)
-    data = list([np.random.bytes(5) for i in range(N)])
-    sin = seating_simulated(data, N, K, 'myfiltername')
+    #data = list([np.random.bytes(5) for i in range(N)])
+    sin = seating_simulated(payloads, N, K, 'myfiltername')
     print("pin/sin = %f" % (pin/sin))
 
 if __name__ == '__main__':
