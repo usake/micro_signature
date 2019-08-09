@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# https://www.cnblogs.com/liun1994/p/6142505.html -- tshark to compare result
+
 import pcap # pip install pypcap
 import dpkt # pip install dpkt
 from binascii import hexlify as he
