@@ -49,7 +49,6 @@ def parse_pcap_file(filename):
         eth = dpkt.ethernet.Ethernet(buf)
         if eth.type != dpkt.ethernet.ETH_TYPE_IP:
             continue
-
         ip = eth.data
         if ip.p != dpkt.ip.IP_PROTO_TCP:
             continue
